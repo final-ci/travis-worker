@@ -6,7 +6,7 @@ require "bundler/setup"
 require 'rspec'
 require 'mocha'
 require 'hashr'
-require 'march_hare'
+#require 'march_hare'
 require 'webmock/rspec'
 
 require 'travis/worker'

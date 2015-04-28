@@ -5,7 +5,7 @@ describe Travis::Worker::Pool do
   include_context "march_hare connection"
 
   let(:names)   { %w(worker-1 worker-2)}
-  let(:pool)    { Travis::Worker::Pool.new(names, Travis::Worker.config, connection) }
+  let(:pool)    { Travis::Worker::Pool.new(names, Travis::Worker.config) }
   let(:workers) { names.map { |name| stub(name, :name => name, :boot => nil, :start => nil, :stop => nil) } }
 
   before :each do

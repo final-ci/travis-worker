@@ -9,6 +9,7 @@ env:
 rvm:
   - jruby-1.7.16
   - jruby-head
+  - 2.1.5
 
 bundler_args: --deployment --binstubs --jobs=3 --retry=3
 
@@ -18,6 +19,23 @@ jdk:
   - openjdk7
   - openjdk6
   - oraclejdk7
+
+matrix:
+  exclude:
+    - rvm: 2.1.5
+      jdk: openjdk7
+    - rvm: 2.1.5
+      jdk: openjdk6
+    - rvm: 2.1.5
+      jdk: oraclejdk7
+    - rvm: 2.1.5
+      jdk: oraclejdk7
+    - rvm: jruby-head
+      jdk: openjdk6
+  allow_failures:
+    - rvm: jruby-head
+      jdk: openjdk7
+    - rvm: jruby-head
 
 sudo: false
 

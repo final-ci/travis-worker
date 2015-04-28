@@ -14,10 +14,10 @@ module Travis
 
       attr_reader :name
 
-      def initialize(name, state_channel, log_channel)
+      def initialize(name, state_publisher, log_publisher)
         @name = name
-        @state_exchange = state_channel.exchange('reporting', type: :topic, durable: true)
-        @log_exchange   = log_channel.exchange('reporting',   type: :topic, durable: true)
+        @state_publisher = state_publisher
+        @log_publisher = log_publisher
         reset
       end
 
@@ -30,32 +30,27 @@ module Travis
       end
 
       def message(event, data)
-        unless exchange_for(event).channel.open?
+        unless publisher_for(event).channel.open?
           warn "trying to publish '#{data}' to closed channel for '#{event}' event"
           return
         end
-        data = encode(data.merge(uuid: Travis.uuid))
+        data = data.merge(uuid: Travis.uuid)
         options = {
           properties: { type: event },
-          routing_key: routing_key_for(event)
         }
-        exchange_for(event).publish(data, options)
+        publisher_for(event).publish(data, options)
       end
       # log :message, :as => :debug, :only => :before
       # this has been disabled as logging is also logged as debug, making the
       # logs super verbose, this can be turned on as needed
 
-      def routing_key_for(event)
-        event.to_s =~ /log/ ? Travis::Worker.config.logging_channel : 'reporting.jobs.builds'
-      end
-
-      def exchange_for(event)
-        event.to_s =~ /log/ ? @log_exchange : @state_exchange
+      def publisher_for(event)
+        event.to_s =~ /log/ ? @log_publisher : @state_publisher
       end
 
       def close
-        @state_exchange.channel.close
-        @log_exchange.channel.close
+        @state_publisher.close
+        @log_publisher.close
       end
 
       # simple helpers

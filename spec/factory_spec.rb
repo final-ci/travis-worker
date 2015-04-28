@@ -1,11 +1,11 @@
 require 'spec_helper'
 require 'travis/worker/factory'
+require 'travis/support/amqp'
 
 describe Travis::Worker::Factory do
-  include_context "march_hare connection"
 
   let(:config)  { Hashr.new({ :queue => "builds.php" }) }
-  let(:factory) { Travis::Worker::Factory.new('worker-name', config, connection) }
+  let(:factory) { Travis::Worker::Factory.new('worker-name', config) }
   let(:worker)  { factory.worker }
 
   describe 'worker' do

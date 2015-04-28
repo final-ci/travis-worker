@@ -1,9 +1,9 @@
 require 'spec_helper'
 require 'hashr'
 require 'stringio'
-require 'march_hare'
 require 'travis/worker/instance'
 require 'celluloid/autostart'
+require 'travis/support/amqp'
 
 describe Travis::Worker::Instance do
   include_context "march_hare connection"
@@ -19,7 +19,7 @@ describe Travis::Worker::Instance do
   let(:observer) { stub('observer', :notify) }
 
   def worker
-    @worker ||= Travis::Worker::Instance.new('worker-1', vm, connection, queue_name, config, [observer]).wrapped_object
+    @worker ||= Travis::Worker::Instance.new('worker-1', vm, queue_name, config, [observer]).wrapped_object
   end
 
   let(:metadata)        { stub('metadata', :ack => nil, :routing_key => "builds.linux") }
@@ -34,6 +34,9 @@ describe Travis::Worker::Instance do
     Celluloid.logger = nil
     Celluloid.shutdown; Celluloid.boot
     worker.stubs(:subscription).returns(stub(:cancelled? => false, :cancel => nil))
+    Travis::Amqp.config = { hostname: '127.0.0.1' }
+    Travis::Amqp.connect
+
   end
 
   after :each do
