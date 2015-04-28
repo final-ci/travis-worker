@@ -11,10 +11,10 @@ module Travis
 
         attr_reader :exchange, :interval, :application
 
-        def initialize(channel, &block)
+        def initialize(&block)
           @status   = block
           @interval = Travis::Worker.config.heartbeat.interval
-          @channel  = channel
+          @channel  = Travis::Amqp.connection.create_channel
           @exchange = @channel.default_exchange
 
           @target_queue_name = 'reporting.workers'

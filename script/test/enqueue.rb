@@ -1,49 +1,41 @@
 require 'rubygems'
-require 'march_hare'
+require 'travis/support'
+require 'travis/support/amqp'
 require 'multi_json'
 require 'hashr'
 
 
-class QueueTester
-  attr_reader :connection, :channel, :exchange, :reporting_queue
+Travis::Amqp.config = {
+  host: 'localhost',
+  port: 5672,
+  username: 'travisci_worker',
+  password: 'travisci_worker_password',
+  virtual_host: 'travisci.development'
+}
 
-  def initialize
-    @connection = @channel = @exchange = @reporting_queue = nil
-  end
+class QueueTester
 
   def start
-    connect
-    open_channel
-    connect_to_exchange
+    Travis::Amqp.connect
+    @publisher = Travis::Amqp::Publisher.builds('builds.linux')
+    @publisher.channel.prefetch = 1
   end
 
   def stop
-    connection.close rescue nil
+    Travis::Amqp.disconnect
     true
   end
 
   def queue_job(payload)
-    exchange.publish(payload, :routing_key => 'builds')
+    @publisher.publish(payload)
   end
 
-  private
-  def connect
-    @connection = MarchHare.connect(:host => 'localhost')
-  end
-
-  def open_channel
-    @channel.close if @channel
-
-    @channel = connection.create_channel
-    @channel.prefetch = 1
-  end
-
-  def connect_to_exchange
-    @exchange = channel.exchange('', :type => :direct, :durable => true)
-  end
 end
 
-payload = MultiJson.encode({
+payload = {
+  'job' => {
+    'id' => 1
+  },
   'repository' => {
     'slug' => 'svenfuchs/gem-release',
   },
@@ -56,7 +48,7 @@ payload = MultiJson.encode({
     'rvm'    => '1.8.7',
     'script' => 'rake'
   }
-})
+}
 
 puts "about to start the queue tester\n\n"
 

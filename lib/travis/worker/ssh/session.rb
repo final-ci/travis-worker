@@ -2,7 +2,7 @@ require 'shellwords'
 require 'travis/worker/utils/buffer'
 require 'travis/worker/utils/hard_timeout'
 require 'travis/worker/ssh/connector/net_ssh'
-require 'travis/worker/ssh/connector/sshjr'
+require 'travis/worker/ssh/connector/sshjr' if (RUBY_PLATFORM == 'java')
 require 'travis/support/logging'
 require 'base64'
 require 'hashr'
@@ -21,9 +21,10 @@ module Travis
         end
 
         CONNECTORS = {
-          net_ssh: Connector::NetSSH,
-          sshjr:   Connector::SSHJr,
+          net_ssh: Connector::NetSSH
         }
+
+        CONNECTORS[:sshjr] =  Connector::SSHJr if defined?(Connects::SSHJr)
 
         log_header { "#{name}:shell:session" }
 
