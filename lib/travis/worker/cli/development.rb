@@ -1,7 +1,9 @@
 require "thor"
 
-require "java"
-require "march_hare"
+require "java" if (RUBY_PLATFORM == 'java')
+require 'travis/support'
+require 'travis/support/amqp'
+
 require "multi_json"
 require 'travis/worker'
 

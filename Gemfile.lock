@@ -1,4 +1,10 @@
 GIT
+  remote: git@github.com:finalci/travis-support.git
+  revision: e496e14fb6bba39a0c1a8dcee9b935ce9e7de481
+  specs:
+    travis-support (0.0.1)
+
+GIT
   remote: https://github.com/celluloid/celluloid
   revision: 5a560561b49241fc84c3b414bb6652826ce8ea71
   ref: 5a56056
@@ -18,12 +24,6 @@ GIT
   specs:
     travis-build (0.0.1)
 
-GIT
-  remote: https://github.com/travis-ci/travis-support
-  revision: 40365216662f639d36fc3a0463c4e189ee1563dd
-  specs:
-    travis-support (0.0.1)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -32,11 +32,14 @@ GEM
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
     addressable (2.3.6)
+    amq-protocol (1.9.2)
     archive-tar-minitar (0.5.2)
     atomic (1.1.16)
     atomic (1.1.16-java)
     avl_tree (1.1.3)
     builder (3.2.2)
+    bunny (1.7.0)
+      amq-protocol (>= 1.9.2)
     coder (0.4.0)
     coderay (1.1.0)
     crack (0.4.2)
@@ -193,6 +196,7 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (~> 3.2)
+  bunny (~> 1.7.0)
   celluloid!
   coder
   docker-api

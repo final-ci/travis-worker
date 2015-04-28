@@ -1,8 +1,8 @@
-require 'java'
-require 'march_hare'
+require "java" if (RUBY_PLATFORM == 'java')
 require 'metriks'
 require 'metriks/reporter/librato_metrics'
 require 'raven'
+require 'travis/support'
 require 'travis/support/amqp'
 require 'travis/support/logger'
 require 'travis/worker/pool'
@@ -19,6 +19,7 @@ module Travis
       def initialize
         Travis::Logger.configure(Travis.logger)
         Travis::Amqp.config = config.amqp
+        Travis::Amqp.connect
 
         if config.sentry.dsn
           Raven.configure do |raven_config|
@@ -79,7 +80,7 @@ module Travis
       log :terminate
 
       def broker_connection
-        @broker_connection ||= MarchHare.connect(amqp_config)
+        @broker_connection ||= Travis::Amqp.connect
       end
 
       protected
@@ -111,15 +112,11 @@ module Travis
       end
 
       def workers
-        @workers ||= Pool.create(broker_connection)
-      end
-
-      def heartbeat_channel
-        @heartbeat_channel ||= broker_connection.create_channel
+        @workers ||= Pool.create
       end
 
       def heart
-        @heart ||= Heart.new(heartbeat_channel) { { :workers => workers.status } }
+        @heart ||= Heart.new { { :workers => workers.status } }
       end
 
       def update
@@ -147,7 +144,7 @@ module Travis
 
       def disconnect
         heart.stop
-        broker_connection.close if broker_connection.open?
+        Travis::Amqp.disconnect
         sleep(0.5)
       end
       log :disconnect
