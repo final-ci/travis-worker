@@ -9,16 +9,15 @@ module Travis
     end
 
     class Pool
-      def self.create(broker_connection)
-        new(Travis::Worker.config.names, Travis::Worker.config, broker_connection)
+      def self.create
+        new(Travis::Worker.config.names, Travis::Worker.config)
       end
 
-      attr_reader :names, :config, :broker_connection
+      attr_reader :names, :config
 
-      def initialize(names, config, broker_connection)
+      def initialize(names, config)
         @names  = names
         @config = config
-        @broker_connection = broker_connection
       end
 
       def start(names)
@@ -39,7 +38,7 @@ module Travis
       end
 
       def workers
-        @workers ||= names.map { |name| Worker::Instance.create(name, config, broker_connection) }
+        @workers ||= names.map { |name| Worker::Instance.create(name, config) }
       end
 
       def worker(name)

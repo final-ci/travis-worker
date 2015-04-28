@@ -3,7 +3,9 @@ source 'https://rubygems.org'
 ruby '1.9.3', engine: 'jruby', engine_version: '1.7.16' if ENV.key?('DYNO')
 
 gem 'travis-build',     git: 'https://github.com/travis-ci/travis-build'
-gem 'travis-support',   git: 'https://github.com/travis-ci/travis-support'
+#gem 'travis-support',   git: 'https://github.com/travis-ci/travis-support'
+#gem 'travis-support',   git: 'git@github.com:finalci/travis-support.git'
+gem 'travis-support',   path: '../travis-support'
 
 gem 'celluloid',        git: 'https://github.com/celluloid/celluloid', ref: '5a56056'
 
@@ -26,7 +28,14 @@ gem 'sshjr',            git: 'https://github.com/joshk/sshjr'
 
 gem 'metriks',          '0.9.9.5'
 
-gem 'march_hare',       '2.7.0'
+platform :mri do
+  gem 'bunny',            '~> 1.7.0'
+end
+
+platform :jruby do
+  gem 'march_hare',       '2.7.0'
+end
+
 
 gem 'sentry-raven',     require: 'raven'
 

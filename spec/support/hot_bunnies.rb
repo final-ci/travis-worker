@@ -1,4 +1,7 @@
 shared_context "march_hare connection" do
-  let(:connection) { MarchHare.connect(:hostname => "127.0.0.1") }
-  after(:each)     { connection.close }
+  let(:connection) {
+    Travis::Amqp.config = { hostname: '127.0.0.1' }
+    Travis::Amqp.connect
+  }
+  after(:each)     { Travis::Amqp.disconnect;sleep 0.1 }
 end

@@ -1,49 +1,41 @@
 require 'rubygems'
-require 'march_hare'
+require 'travis/support'
+require 'travis/support/amqp'
 require 'multi_json'
 require 'hashr'
 
-class Reporter
-  attr_reader :connection, :channel, :exchange, :reporting_queue
+Travis::Amqp.config = {
+  host: 'localhost',
+  port: 5672,
+  username: 'travisci_worker',
+  password: 'travisci_worker_password',
+  virtual_host: 'travisci.development'
+}
 
-  def initialize
-    @connection = @channel = @exchange = @reporting_queue = nil
-  end
+#Travis.logger.level = 'DEBUG'
+
+class Reporter
 
   def start
     connect
-    open_channel
-    connect_to_exchange
-    create_reporting_queue
     subscribe
   end
 
   def stop
-    connection.close
+    Travis::Amqp.disconnect
   end
 
   private
   def connect
-    @connection = MarchHare.connect(:host => 'localhost')
+    Travis::Amqp.connect
   end
 
-  def open_channel
-    @channel.close if @channel
-
-    @channel = connection.create_channel
-    @channel.prefetch = 1
-  end
-
-  def connect_to_exchange
-    @exchange = channel.exchange('', :type => :direct, :durable => true)
-  end
-
-  def create_reporting_queue
-    @reporting_queue = channel.queue('reporting.jobs', :durable => true, :exculsive => false)
+  def consumer
+    Travis::Amqp::Consumer.jobs('logs', channel: { prefetch: 1 })
   end
 
   def subscribe
-    @subscription = @reporting_queue.subscribe(:ack => true, :blocking => false) do |headers, payload|
+    @subscription = consumer.subscribe(ack: true, declare: true) do |headers, payload|
       p [headers.properties.getType, MultiJson.decode(payload)]
       headers.ack
     end
