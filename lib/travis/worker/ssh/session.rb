@@ -112,6 +112,10 @@ module Travis
           exec(command)
         end
 
+        def forward
+          @connector.forward
+        end
+
         protected
 
           def decode_base64_command

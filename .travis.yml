@@ -9,6 +9,7 @@ env:
 rvm:
   - jruby-1.7.16
   - jruby-head
+  - ruby-2.1.5
 
 bundler_args: --deployment --binstubs --jobs=3 --retry=3
 

@@ -1,4 +1,19 @@
 GIT
+  remote: git://github.com/finalci/travis-guest-api.git
+  revision: ffc6cd201a81d4cfe6d44a071aca99b841316ff1
+  specs:
+    travis-guest-api (0.0.1)
+      multi_json
+      rake
+      travis-config (~> 0.1.0)
+
+GIT
+  remote: git@github.com:finalci/travis-support.git
+  revision: 4f5354451279fc04c72942f95c6d33e1c039eda1
+  specs:
+    travis-support (0.0.1)
+
+GIT
   remote: https://github.com/celluloid/celluloid
   revision: 5a560561b49241fc84c3b414bb6652826ce8ea71
   ref: 5a56056
@@ -18,11 +33,6 @@ GIT
   specs:
     travis-build (0.0.1)
 
-PATH
-  remote: ../travis-support
-  specs:
-    travis-support (0.0.1)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -36,6 +46,7 @@ GEM
     atomic (1.1.16)
     atomic (1.1.16-java)
     avl_tree (1.1.3)
+    backports (3.6.4)
     builder (3.2.2)
     bunny (1.7.0)
       amq-protocol (>= 1.9.2)
@@ -153,7 +164,15 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
       spoon (~> 0.0)
+    puma (2.11.2)
+      rack (>= 1.1, < 2.0)
+    puma (2.11.2-java)
+      rack (>= 1.1, < 2.0)
     rack (1.5.2)
+    rack-protection (1.5.3)
+      rack
+    rack-test (0.6.3)
+      rack (>= 1.0)
     rake (0.9.6)
     rspec (3.1.0)
       rspec-core (~> 3.1.0)
@@ -175,12 +194,26 @@ GEM
       multi_json
       simplecov-html (~> 0.8.0)
     simplecov-html (0.8.0)
+    sinatra (1.4.6)
+      rack (~> 1.4)
+      rack-protection (~> 1.4)
+      tilt (>= 1.3, < 3)
+    sinatra-contrib (1.4.2)
+      backports (>= 2.0)
+      multi_json
+      rack-protection
+      rack-test
+      sinatra (~> 1.4.0)
+      tilt (~> 1.3)
     slop (3.6.0)
     spoon (0.0.4)
       ffi
     thor (0.19.1)
+    tilt (1.4.1)
     timers (2.0.0)
       hitimes
+    travis-config (0.1.0)
+      hashr (~> 0.0)
     travis-saucelabs-api (0.0.3)
       faraday (~> 0.7)
       faraday_middleware (~> 0.9)
@@ -209,13 +242,17 @@ DEPENDENCIES
   multi_json (~> 1.2.0)
   net-ssh (~> 2.9.0)
   pry
+  puma
   rake (~> 0.9.2)
   rspec
   sentry-raven
   simplecov (>= 0.4.0)
+  sinatra
+  sinatra-contrib
   sshjr!
   thor
   travis-build!
+  travis-guest-api!
   travis-saucelabs-api (~> 0.0)
   travis-support!
   webmock

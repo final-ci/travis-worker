@@ -24,6 +24,10 @@ module Travis
             @session.close if open?
           end
 
+          def forward
+            @session.forward
+          end
+
           def exec(command, buffer)
             connect unless open?
 

@@ -14,10 +14,11 @@ module Travis
 
       attr_reader :name
 
-      def initialize(name, state_publisher, log_publisher)
+      def initialize(name, state_publisher, log_publisher, test_result_publisher)
         @name = name
         @state_publisher = state_publisher
         @log_publisher = log_publisher
+        @test_result_publisher = test_result_publisher
         reset
       end
 
@@ -46,6 +47,9 @@ module Travis
 
       def publisher_for(event)
         event.to_s =~ /log/ ? @log_publisher : @state_publisher
+        return @log_publisher if event.to_s =~ /log/
+        return @test_result_publisher if event.to_s =~ /test_result/
+        @state_publisher
       end
 
       def close
@@ -63,6 +67,14 @@ module Travis
 
       def send_last_log(job_id)
         send_log(job_id, "", true)
+      end
+
+      def send_tresult(job_id, payload)
+        notify('job:test:test_result', payload)
+      end
+
+      def send_tresult_update(job_id, id, payload)
+        notify('job:test:test_result', payload)
       end
 
       def notify_job_received(job_id)
