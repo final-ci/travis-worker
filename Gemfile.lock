@@ -1,19 +1,4 @@
 GIT
-  remote: git://github.com/finalci/travis-guest-api.git
-  revision: ffc6cd201a81d4cfe6d44a071aca99b841316ff1
-  specs:
-    travis-guest-api (0.0.1)
-      multi_json
-      rake
-      travis-config (~> 0.1.0)
-
-GIT
-  remote: git@github.com:finalci/travis-support.git
-  revision: 4f5354451279fc04c72942f95c6d33e1c039eda1
-  specs:
-    travis-support (0.0.1)
-
-GIT
   remote: https://github.com/celluloid/celluloid
   revision: 5a560561b49241fc84c3b414bb6652826ce8ea71
   ref: 5a56056
@@ -27,11 +12,23 @@ GIT
   specs:
     sshjr (0.1.0)
 
-GIT
-  remote: https://github.com/travis-ci/travis-build
-  revision: 67471ac6a6f437a2593d619721e39121b1b2dae0
+PATH
+  remote: ../travis-build
   specs:
     travis-build (0.0.1)
+
+PATH
+  remote: ../travis-guest-api/
+  specs:
+    travis-guest-api (0.0.1)
+      multi_json
+      rake
+      travis-config (~> 0.1.0)
+
+PATH
+  remote: ../travis-support
+  specs:
+    travis-support (0.0.1)
 
 GEM
   remote: https://rubygems.org/
