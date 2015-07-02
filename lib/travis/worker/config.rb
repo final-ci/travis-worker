@@ -26,6 +26,7 @@ module Travis
              logger:    { process_id: true, thread_id: true },
              queue:     'builds.linux',
              logging_channel: 'reporting.jobs.logs',
+             test_result_channel: 'reporting.jobs.test_results',
              shell:     { buffer: 0.5 },
              timeouts:  { build_script: 5, hard_limit: 50 * 60, log_silence: 10 * 60 },
              shutdown_timeout: 3600,

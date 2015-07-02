@@ -1,16 +1,25 @@
 GIT
+  remote: git://github.com/finalci/travis-guest-api.git
+  revision: ffc6cd201a81d4cfe6d44a071aca99b841316ff1
+  specs:
+    travis-guest-api (0.0.1)
+      multi_json
+      rake
+      travis-config (~> 0.1.0)
+
+GIT
+  remote: git@github.com:finalci/travis-support.git
+  revision: 4f5354451279fc04c72942f95c6d33e1c039eda1
+  specs:
+    travis-support (0.0.1)
+
+GIT
   remote: https://github.com/celluloid/celluloid
   revision: 5a560561b49241fc84c3b414bb6652826ce8ea71
   ref: 5a56056
   specs:
     celluloid (0.16.0.pre)
       timers (~> 2.0.0)
-
-GIT
-  remote: https://github.com/final-ci/travis-support.git
-  revision: 6ed312e112452497dc22ab73561f134ffaaa9f77
-  specs:
-    travis-support (0.0.1)
 
 GIT
   remote: https://github.com/joshk/sshjr
@@ -32,14 +41,12 @@ GEM
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
     addressable (2.3.6)
-    akami (1.3.0)
-      gyoku (>= 0.4.0)
-      nokogiri
     amq-protocol (1.9.2)
     archive-tar-minitar (0.5.2)
     atomic (1.1.16)
     atomic (1.1.16-java)
     avl_tree (1.1.3)
+    backports (3.6.4)
     builder (3.2.2)
     bunny (1.7.0)
       amq-protocol (>= 1.9.2)
@@ -118,20 +125,14 @@ GEM
       fog-core
       nokogiri (~> 1.5, >= 1.5.11)
     formatador (0.2.5)
-    gyoku (1.3.1)
-      builder (>= 2.1.2)
     hashr (0.0.22)
     hitimes (1.2.2)
     hitimes (1.2.2-java)
-    httpi (2.4.0)
-      rack
     i18n (0.6.11)
     inflecto (0.0.2)
     ipaddress (0.8.0)
     json (1.8.1)
     json (1.8.1-java)
-    macaddr (1.7.1)
-      systemu (~> 2.6.2)
     march_hare (2.7.0-java)
     metaclass (0.0.4)
     method_source (0.8.2)
@@ -140,7 +141,7 @@ GEM
       avl_tree (~> 1.1.2)
       hitimes (~> 1.1)
     mime-types (2.4.3)
-    mini_portile (0.6.2)
+    mini_portile (0.6.1)
     mocha (0.11.4)
       metaclass (~> 0.0.1)
     multi_json (1.2.0)
@@ -148,10 +149,9 @@ GEM
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (2.9.1)
-    nokogiri (1.6.6.2)
+    nokogiri (1.6.4.1)
       mini_portile (~> 0.6.0)
-    nokogiri (1.6.6.2-java)
-    nori (2.6.0)
+    nokogiri (1.6.4.1-java)
     opennebula (4.10.0)
       json
       nokogiri
@@ -164,7 +164,15 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
       spoon (~> 0.0)
+    puma (2.11.2)
+      rack (>= 1.1, < 2.0)
+    puma (2.11.2-java)
+      rack (>= 1.1, < 2.0)
     rack (1.5.2)
+    rack-protection (1.5.3)
+      rack
+    rack-test (0.6.3)
+      rack (>= 1.0)
     rake (0.9.6)
     rspec (3.1.0)
       rspec-core (~> 3.1.0)
@@ -179,15 +187,6 @@ GEM
       rspec-support (~> 3.1.0)
     rspec-support (3.1.0)
     safe_yaml (1.0.3)
-    savon (2.11.0)
-      akami (~> 1.2)
-      builder (>= 2.1.2)
-      gyoku (~> 1.2)
-      httpi (~> 2.3)
-      nokogiri (>= 1.4.0)
-      nori (~> 2.4)
-      uuid (~> 2.3.7)
-      wasabi (~> 3.4)
     sentry-raven (0.12.1)
       faraday (>= 0.7.6)
     simplecov (0.9.0)
@@ -195,22 +194,30 @@ GEM
       multi_json
       simplecov-html (~> 0.8.0)
     simplecov-html (0.8.0)
+    sinatra (1.4.6)
+      rack (~> 1.4)
+      rack-protection (~> 1.4)
+      tilt (>= 1.3, < 3)
+    sinatra-contrib (1.4.2)
+      backports (>= 2.0)
+      multi_json
+      rack-protection
+      rack-test
+      sinatra (~> 1.4.0)
+      tilt (~> 1.3)
     slop (3.6.0)
     spoon (0.0.4)
       ffi
-    systemu (2.6.5)
     thor (0.19.1)
+    tilt (1.4.1)
     timers (2.0.0)
       hitimes
+    travis-config (0.1.0)
+      hashr (~> 0.0)
     travis-saucelabs-api (0.0.3)
       faraday (~> 0.7)
       faraday_middleware (~> 0.9)
       thor (~> 0.14)
-    uuid (2.3.7)
-      macaddr (~> 1.0)
-    wasabi (3.5.0)
-      httpi (~> 2.0)
-      nokogiri (>= 1.4.2)
     webmock (1.18.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -234,16 +241,18 @@ DEPENDENCIES
   mocha (~> 0.11.0)
   multi_json (~> 1.2.0)
   net-ssh (~> 2.9.0)
-  nokogiri (~> 1.6.6.2)
   pry
+  puma
   rake (~> 0.9.2)
   rspec
-  savon (~> 2.11.0)
   sentry-raven
   simplecov (>= 0.4.0)
+  sinatra
+  sinatra-contrib
   sshjr!
   thor
   travis-build!
+  travis-guest-api!
   travis-saucelabs-api (~> 0.0)
   travis-support!
   webmock

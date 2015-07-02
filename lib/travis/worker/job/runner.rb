@@ -3,6 +3,8 @@ require 'travis/support/logging'
 require 'travis/worker/utils/hard_timeout'
 require 'travis/worker/job/script'
 
+require 'travis/guest-api/server'
+
 # monkey patch net-ssh for now
 require 'net/ssh/buffered_io'
 module Net
@@ -41,6 +43,9 @@ module Travis
           @host_name  = host_name
           @timeouts   = Hashr.new(timeouts)
           @log_prefix = log_prefix
+
+          @event_state = {
+          }
         end
 
         def run
@@ -71,7 +76,31 @@ module Travis
         end
         log :setup, as: :debug
 
+        def guest_api_url
+          "http://127.0.0.1:#{guest_api_port}"
+        end
+
+        def guest_api_port
+          payload['GUEST_API_PORT'] || 34567
+        end
+
+
+        def guest_api_handler(payload)
+          info "guest_api_handler received payload: #{payload.inspect}"
+          #TODO: will be handle commands from VM
+          # e.g. possibe test with restart, sending test results
+          # and test withou ssh stable ssh connection.
+        end
+
         def start
+          @guest_api_server = Travis::GuestApi::Server.new(
+            job_id,
+            @reporter,
+            &method(:guest_api_handler)
+          ).start
+          @guest_api_port = 34567
+          session.forward.remote_to(@guest_api_server.port, '127.0.0.1', @guest_api_port )
+
           notify_job_started
 
           upload_script
@@ -86,7 +115,12 @@ module Travis
           result = 'errored'
         rescue IOError, Errno::ECONNREFUSED
           connection_error
+        rescue => e
+          puts "spesl chyba: #{e}"
+          puts e.backtrace.join("\n")
+          raise
         ensure
+          @guest_api_server.stop
           if @canceled
             sleep 2
             reporter.send_log(job_id, "\n\nDone: Job Cancelled\n")
@@ -159,9 +193,9 @@ until nc 127.0.0.1 15782; do sleep 1; done
 until [[ -f ~/build.sh.exit ]]; do sleep 1; done
 exit $(cat ~/build.sh.exit)
 EOF
-              session.exec("bash ~/wrapper.sh") { exit_exec? }
+              session.exec("GUEST_API_URL=%s bash ~/wrapper.sh" % guest_api_url) { exit_exec? }
             else
-              session.exec("bash --login ~/build.sh") { exit_exec? }
+              session.exec("GUEST_API_URL=%s bash --login ~/build.sh" % guest_api_url) { exit_exec? }
             end
           end
         rescue Timeout::Error

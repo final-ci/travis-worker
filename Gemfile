@@ -4,8 +4,10 @@ ruby '1.9.3', engine: 'jruby', engine_version: '1.7.16' if ENV.key?('DYNO')
 
 gem 'travis-build',     git: 'https://github.com/travis-ci/travis-build'
 #gem 'travis-support',   git: 'https://github.com/travis-ci/travis-support'
+gem 'travis-support',   github: 'finalci/travis-support'
 #gem 'travis-support',   path: '../travis-support'
-gem 'travis-support',   git: 'https://github.com/final-ci/travis-support.git'
+gem 'travis-guest-api', github: 'finalci/travis-guest-api'
+#gem 'travis-guest-api', path: '../travis-guest-api/'
 
 gem 'celluloid',        git: 'https://github.com/celluloid/celluloid', ref: '5a56056'
 
@@ -49,6 +51,13 @@ group :test do
   gem 'simplecov',      '>= 0.4.0', require: false
   gem 'webmock'
 end
+
+gem 'puma'
+gem 'sinatra'
+gem 'sinatra-contrib'
+#gem 'rack-contrib',    github: 'rack/rack-contrib'
+
+
 
 group :development do
   gem 'pry'

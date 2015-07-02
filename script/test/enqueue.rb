@@ -47,7 +47,18 @@ payload = {
   'config' => {
     'rvm'    => '1.8.7',
     'script' => 'rake'
-  }
+  },
+  'script' => <<EOF
+echo "test..."
+sleep 5
+curl -X POST -H "Accept: application/json" -d '{"job_id": 666, "message": "text from guest api1"}' $GUEST_API_URL/jobs/1/logs
+echo 'text form stdout'
+curl -X POST -H "Accept: application/json" -d '{"job_id": 666, "message": "text from guest api2"}' $GUEST_API_URL/jobs/1/logs
+curl -X POST -H "Accept: application/json" -d '{"job_id": 2, "name": "testName", "classname": "className", "result": "success"}' $GUEST_API_URL/jobs/1/testcases
+sleep 2
+curl -X POST -H "Accept: application/json" -d \'{"job_id": 1, "message": "any text"}\' $GUEST_API_URL/jobs/1/finished
+sleep 2
+EOF
 }
 
 puts "about to start the queue tester\n\n"

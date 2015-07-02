@@ -42,7 +42,8 @@ module Travis
         # create the reporter early so it is not created within the `process` callback
         @reporter = Reporter.new(name,
            builds_publisher,
-           logs_publisher
+           logs_publisher,
+           test_results_publisher
         )
       end
 
@@ -52,6 +53,10 @@ module Travis
 
       def logs_publisher
         @logs_publisher ||= Travis::Amqp::Publisher.jobs('logs', unique_channel: true, dont_retry: true)
+      end
+
+      def test_results_publisher
+        @test_results_publisher ||= Travis::Amqp::Publisher.jobs('test_results', unique_channel: true, dont_retry: true)
       end
 
       def start
@@ -154,6 +159,7 @@ module Travis
         reporting_channel = Travis::Amqp.connection.create_channel
         reporting_channel.queue("reporting.jobs.builds", :durable => true)
         reporting_channel.queue("reporting.jobs.logs",   :durable => true)
+        reporting_channel.queue(Travis::Worker.config.test_result_channel, :durable => true)
       end
 
       def subscribe
