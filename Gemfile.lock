@@ -1,5 +1,11 @@
 GIT
-  remote: git://github.com/finalci/travis-guest-api.git
+  remote: git://github.com/final-ci/travis-build.git
+  revision: 377c8ac74aec02fa0223a1a820fcfe49949eae2f
+  specs:
+    travis-build (0.0.1)
+
+GIT
+  remote: git://github.com/final-ci/travis-guest-api.git
   revision: ffc6cd201a81d4cfe6d44a071aca99b841316ff1
   specs:
     travis-guest-api (0.0.1)
@@ -8,8 +14,8 @@ GIT
       travis-config (~> 0.1.0)
 
 GIT
-  remote: git@github.com:finalci/travis-support.git
-  revision: 4f5354451279fc04c72942f95c6d33e1c039eda1
+  remote: git://github.com/final-ci/travis-support.git
+  revision: 6ed312e112452497dc22ab73561f134ffaaa9f77
   specs:
     travis-support (0.0.1)
 
@@ -27,12 +33,6 @@ GIT
   specs:
     sshjr (0.1.0)
 
-GIT
-  remote: https://github.com/travis-ci/travis-build
-  revision: 67471ac6a6f437a2593d619721e39121b1b2dae0
-  specs:
-    travis-build (0.0.1)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -41,6 +41,9 @@ GEM
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
     addressable (2.3.6)
+    akami (1.3.1)
+      gyoku (>= 0.4.0)
+      nokogiri
     amq-protocol (1.9.2)
     archive-tar-minitar (0.5.2)
     atomic (1.1.16)
@@ -125,9 +128,13 @@ GEM
       fog-core
       nokogiri (~> 1.5, >= 1.5.11)
     formatador (0.2.5)
+    gyoku (1.3.1)
+      builder (>= 2.1.2)
     hashr (0.0.22)
     hitimes (1.2.2)
     hitimes (1.2.2-java)
+    httpi (2.4.1)
+      rack
     i18n (0.6.11)
     inflecto (0.0.2)
     ipaddress (0.8.0)
@@ -141,7 +148,7 @@ GEM
       avl_tree (~> 1.1.2)
       hitimes (~> 1.1)
     mime-types (2.4.3)
-    mini_portile (0.6.1)
+    mini_portile (0.6.2)
     mocha (0.11.4)
       metaclass (~> 0.0.1)
     multi_json (1.2.0)
@@ -149,9 +156,10 @@ GEM
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (2.9.1)
-    nokogiri (1.6.4.1)
+    nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
-    nokogiri (1.6.4.1-java)
+    nokogiri (1.6.6.2-java)
+    nori (2.6.0)
     opennebula (4.10.0)
       json
       nokogiri
@@ -187,6 +195,14 @@ GEM
       rspec-support (~> 3.1.0)
     rspec-support (3.1.0)
     safe_yaml (1.0.3)
+    savon (2.11.1)
+      akami (~> 1.2)
+      builder (>= 2.1.2)
+      gyoku (~> 1.2)
+      httpi (~> 2.3)
+      nokogiri (>= 1.4.0)
+      nori (~> 2.4)
+      wasabi (~> 3.4)
     sentry-raven (0.12.1)
       faraday (>= 0.7.6)
     simplecov (0.9.0)
@@ -218,6 +234,9 @@ GEM
       faraday (~> 0.7)
       faraday_middleware (~> 0.9)
       thor (~> 0.14)
+    wasabi (3.5.0)
+      httpi (~> 2.0)
+      nokogiri (>= 1.4.2)
     webmock (1.18.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -241,10 +260,12 @@ DEPENDENCIES
   mocha (~> 0.11.0)
   multi_json (~> 1.2.0)
   net-ssh (~> 2.9.0)
+  nokogiri (~> 1.6.6.2)
   pry
   puma
   rake (~> 0.9.2)
   rspec
+  savon (~> 2.11.0)
   sentry-raven
   simplecov (>= 0.4.0)
   sinatra
