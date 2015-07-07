@@ -23,7 +23,7 @@ module Travis
 
         log_header { "#{name}:worker:virtual_machine:soap_provider" }
 
-        attr_reader :name, :ip, :endpoint, :vm
+        attr_reader :name, :ip, :endpoint, :vm, :client
 
         def initialize(name)
           @name = name
@@ -31,6 +31,7 @@ module Travis
 
         def prepare
           info "soap API adapter prepared"
+          @client = Savon.client(client_config)
         end
 
         def sandboxed(opts = {})
@@ -108,7 +109,7 @@ module Travis
           end
 
           def client_config
-	    raise "soap.service_endpoint must be specified!" if soap_config.service_endpoint.blank?
+	          raise "soap.service_endpoint must be specified!" if soap_config.service_endpoint.blank?
             res = {
               env_namespace: :s,
               namespace_identifier: nil,
@@ -121,18 +122,14 @@ module Travis
             res
           end
 
-          def client
-            @client ||= Savon.client(client_config)
-          end
-
           def template_name(opts)
             if soap_config.image_override
               soap_config.image_override
             else
               raise "Could not construct templateName, dist field must not be empty" unless opts[:dist]
 
-              [ soap_config.template_name_prefix, 
-                opts[:dist], 
+              [ soap_config.template_name_prefix,
+                opts[:dist],
                 opts[:group]
               ].select(&:present?).join('_')
             end

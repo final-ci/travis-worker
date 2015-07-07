@@ -16,6 +16,11 @@ module Travis
           self.const_get(provider_name)
         end
       end
+
+      def self.config
+        provider_name = Travis::Worker.config.vms.provider
+        Travis::Worker.config.send(provider_name.to_sym)
+      end
     end
   end
 end

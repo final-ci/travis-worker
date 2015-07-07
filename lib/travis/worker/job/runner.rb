@@ -194,6 +194,79 @@ until [[ -f ~/build.sh.exit ]]; do sleep 1; done
 exit $(cat ~/build.sh.exit)
 EOF
               session.exec("GUEST_API_URL=%s bash ~/wrapper.sh" % guest_api_url) { exit_exec? }
+            elsif payload[:config][:os] == 'windows' && Hash === payload[:config][:windows] && payload[:config][:windows][:run_in_session1]
+              session.upload_file("~/build_wrapper.sh", <<EOF % [Travis::Worker::VirtualMachine.config[:username], Travis::Worker::VirtualMachine.config[:password]])
+#!/bin/bash
+#curl -X POST -d '{"message":"Interactive runner started"}' $GUEST_API_URL/logs
+WIN_HOME_DIR=`cygpath -adw ~`
+PS1_FILE=$WIN_HOME_DIR\\\\run_pswrapper.ps1
+
+/cygdrive/c/Tools/PsExec.exe -u "%s" -p "%s" -acceptEula -h -i 1 powershell -file "$PS1_FILE" 2>/dev/null >/dev/null
+
+if [ -f ~/build.sh.exit ] ; then
+  exit $(cat ~/build.sh.exit)
+else
+  echo "Runner script was probably not executed, returning 1";
+  exit 1;
+fi
+
+EOF
+
+              session.upload_file("~/run_pswrapper.ps1", <<EOF % guest_api_url)
+$GUEST_API_URL="%s";
+[System.Reflection.Assembly]::LoadWithPartialName("System.Net");
+[System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions");
+$ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer;
+
+$json = $ser.serialize(@{message= "`n`nMinttyRunner started`n`n"});
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
+$cl = new-object System.Net.WebClient;
+$cl.uploaddata("$GUEST_API_URL/logs", $bytes);
+
+$p = new-object system.diagnostics.process;
+$p.StartInfo.UseShellExecute = $false;
+$p.StartInfo.CreateNoWindow = $true;
+$p.StartInfo.FileName = "c:\\cygwin\\bin\\mintty.exe";
+$p.StartInfo.Arguments = "-l - --exec /bin/bash -l -c 'exec /bin/bash ~/build.sh'";
+$p.StartInfo.RedirectStandardError = $p.StartInfo.RedirectStandardOutput = $true;
+
+$block = {
+    try
+    {
+        $hash = @{message = $event.SourceEventArgs.Data};
+        $json = $ser.Serialize($hash);
+        $cl = new-object System.Net.WebClient;
+        $bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
+        $cl.uploaddata("$GUEST_API_URL/logs", $bytes);
+    }
+    catch
+    {
+    }
+}
+
+Register-ObjectEvent -InputObject $p -EventName OutputDataReceived -Action $block -SourceIdentifier OutputReader | Out-Null;
+$p.Start() | out-null;
+$p.BeginOutputReadLine();
+while(-not $p.HasExited)
+{
+    sleep 1;
+};
+if($p.StandardError -ne $null)
+{
+    $p.StandardError.ReadToEnd()|Out-Host;
+};
+Unregister-Event -SourceIdentifier OutputReader;
+$p.WaitForExit();
+
+$json = $ser.serialize(@{message= "`n`nMinttyRunner finished`n`n"});
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
+$cl = new-object System.Net.WebClient;
+$cl.uploaddata("$GUEST_API_URL/logs", $bytes);
+
+exit $($p.ExitCode);
+
+EOF
+              session.exec("GUEST_API_URL=%s bash --login ~/build_wrapper.sh" % guest_api_url) { exit_exec? }
             else
               session.exec("GUEST_API_URL=%s bash --login ~/build.sh" % guest_api_url) { exit_exec? }
             end
