@@ -4,6 +4,7 @@ require 'metriks/reporter/librato_metrics'
 require 'raven'
 require 'travis/support'
 require 'travis/support/amqp'
+require 'travis/support/metrics'
 require 'travis/support/logger'
 require 'travis/worker/pool'
 require 'travis/worker/application/commands/dispatcher'
@@ -186,11 +187,8 @@ module Travis
       end
 
       def start_metriks
-        librato = Travis::Worker.config.librato
-        if librato
-          @reporter = Metriks::Reporter::LibratoMetrics.new(librato['email'], librato['token'], :source => Travis::Worker.config.host)
-          @reporter.start
-        end
+        Travis::Metrics.setup(nil, config)
+        @reporter = Travis::Metrics.reporter
       end
 
       def workers_stopped?
