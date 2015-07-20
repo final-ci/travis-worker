@@ -192,7 +192,7 @@ module Travis
 
         def start_session
           announce("Using worker: #{host_name}\n\n")
-          retryable(:tries => 5, :sleep => 3) do
+          retryable(:tries => 20, :sleep => 15) do
             Timeout.timeout(10) do
               session.connect
             end
