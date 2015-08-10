@@ -8,38 +8,15 @@ require 'active_support/core_ext/hash'
 module Travis
   module Worker
     module VirtualMachine
-      class SoapProvider
+      class SoapProvider < Base
         include Logging
 
-        class << self
-          def vm_count
-            Travis::Worker.config.vms.count
-          end
 
-          def vm_names
-            vm_count.times.map { |num| "#{Travis::Worker.config.vms.name_prefix}-#{num + 1}" }
-          end
-        end
-
-        log_header { "#{name}:worker:virtual_machine:soap_provider" }
-
-        attr_reader :name, :ip, :endpoint, :vm, :client
-
-        def initialize(name)
-          @name = name
-        end
+        attr_reader :endpoint, :vm, :client
 
         def prepare
-          info "soap API adapter prepared"
           @client = Savon.client(client_config)
-        end
-
-        def sandboxed(opts = {})
-          create_server(opts)
-          yield
-        ensure
-          session.close if @session
-          destroy_server(opts)
+          info "soap API adapter prepared"
         end
 
         def create_server(opts = {})
@@ -49,22 +26,6 @@ module Travis
         def destroy_server(opts = {})
           release_vm if vm
           @session = nil
-        end
-
-        def session
-          #create_server unless clone
-          @session ||= Ssh::Session.new(name,
-            :host => ip_address,
-            :port => soap_config.port || 22,
-            :username => soap_config.username,
-            :private_key_path => soap_config.private_key_path,
-            :buffer => Travis::Worker.config.shell.buffer,
-            :timeouts => Travis::Worker.config.timeouts,
-          )
-        end
-
-        def full_name
-          "#{Travis::Worker.config.host}:travis-soap-#{name}"
         end
 
         private
@@ -81,7 +42,7 @@ module Travis
                 xml.guid Travis.uuid
                 xml.requestorUserName (opts[:requestor] || soap_config.requestor_user_name || "CZ\\tester")
                 xml.testId opts[:job_id]
-              } 
+              }
             end
             begin
               response = client.call(:provision_machine, message: { specification: builder.doc.root.to_s } )
@@ -139,4 +100,3 @@ module Travis
     end
   end
 end
-

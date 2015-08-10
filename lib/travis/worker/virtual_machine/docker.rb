@@ -5,15 +5,15 @@ require 'digest/sha1'
 require 'benchmark'
 require 'travis/support'
 require 'travis/worker/ssh/session'
+require 'travis/worker/virtual_machine/base'
 
 module Travis
   module Worker
     module VirtualMachine
       # A simple encapsulation of the BlueBox commands used in the
       # Travis Virtual Machine lifecycle.
-      class Docker
+      class Docker < Base
         include Retryable
-        include Logging
 
         class << self
           def vm_count
@@ -25,16 +25,11 @@ module Travis
           end
         end
 
-        log_header { "#{name}:worker:virtual_machine:docker" }
 
-        attr_reader :name, :container
-
-        def initialize(name)
-          @name = name
-        end
+        attr_reader :container
 
         def create_server(opts = {})
-          image = image_for_language(opts[:language])
+          image = template_name(opts)
 
           info "Using image '#{image} for language #{opts[:language] || '[nil]'}"
 
@@ -118,23 +113,11 @@ module Travis
           @session ||= Ssh::Session.new(name,
             :host => ssh_host,
             :port => ssh_port,
-            :username => docker_config.username,
-            :private_key_path => docker_config.private_key_path,
+            :username => platform_provider.username,
+            :private_key_path => platform_provider.private_key_path,
             :buffer => Travis::Worker.config.shell.buffer,
             :timeouts => Travis::Worker.config.timeouts
           )
-        end
-
-        def sandboxed(opts = {})
-          create_server(opts)
-          yield
-        ensure
-          session.close if @session
-          destroy_server
-        end
-
-        def full_name
-          "#{Travis::Worker.config.host}:travis-#{name}"
         end
 
         def docker_config
@@ -208,10 +191,6 @@ module Travis
 
         private
 
-          def worker_number
-            /\w+-(\d+)/.match(name)[1].to_i
-          end
-
           def ip_address
             container.json['NetworkSettings']['IPAddress']
           end
@@ -258,6 +237,11 @@ module Travis
 
           def image_override
             @image_override ||= Travis::Worker.config.image_override
+          end
+
+
+          def template_name(opts)
+            image = image_for_language(opts[:language])
           end
 
       end

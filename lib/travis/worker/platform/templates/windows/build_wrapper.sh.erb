@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#curl -X POST -d '{"message":"Interactive runner started"}' $GUEST_API_URL/logs
+WIN_HOME_DIR=`cygpath -adw ~`
+PS1_FILE=$WIN_HOME_DIR\\\\run_pswrapper.ps1
+
+/cygdrive/c/Tools/PsExec.exe -u "<%= Travis::Worker::VirtualMachine.config[:username] %>" -p "<%= Travis::Worker::VirtualMachine.config[:password] %>" -acceptEula -h -i 1 powershell -file "$PS1_FILE" 2>/dev/null >/dev/null
+
+if [ -f ~/build.sh.exit ] ; then
+  exit $(cat ~/build.sh.exit)
+else
+  echo "Runner script was probably not executed, returning 1";
+  exit 1;
+fi
+
+

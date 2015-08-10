@@ -1,0 +1,9 @@
+#!/bin/bash
+
+[[ -f ~/build.sh.exit ]] && rm ~/build.sh.exit
+
+until nc 127.0.0.1 15782; do sleep 1; done
+
+until [[ -f ~/build.sh.exit ]]; do sleep 1; done
+exit $(cat ~/build.sh.exit)
+

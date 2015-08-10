@@ -1,0 +1,54 @@
+
+$GUEST_API_URL="<%= guest_api_url %>";
+[System.Reflection.Assembly]::LoadWithPartialName("System.Net");
+[System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions");
+$ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer;
+
+$json = $ser.serialize(@{message= "`n`nMinttyRunner started`n`n"});
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
+$cl = new-object System.Net.WebClient;
+$cl.uploaddata("$GUEST_API_URL/logs", $bytes);
+
+$p = new-object system.diagnostics.process;
+$p.StartInfo.UseShellExecute = $false;
+$p.StartInfo.CreateNoWindow = $true;
+$p.StartInfo.FileName = "c:\\cygwin\\bin\\mintty.exe";
+$p.StartInfo.Arguments = "-l - --exec /bin/bash -l -c 'exec /bin/bash ~/build.sh'";
+$p.StartInfo.RedirectStandardError = $p.StartInfo.RedirectStandardOutput = $true;
+
+$block = {
+    try
+    {
+        $hash = @{message = $event.SourceEventArgs.Data};
+        $json = $ser.Serialize($hash);
+        $cl = new-object System.Net.WebClient;
+        $bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
+        $cl.uploaddata("$GUEST_API_URL/logs", $bytes);
+    }
+    catch
+    {
+    }
+}
+
+Register-ObjectEvent -InputObject $p -EventName OutputDataReceived -Action $block -SourceIdentifier OutputReader | Out-Null;
+$p.Start() | out-null;
+$p.BeginOutputReadLine();
+while(-not $p.HasExited)
+{
+    sleep 1;
+};
+if($p.StandardError -ne $null)
+{
+    $p.StandardError.ReadToEnd()|Out-Host;
+};
+Unregister-Event -SourceIdentifier OutputReader;
+$p.WaitForExit();
+
+$json = $ser.serialize(@{message= "`n`nMinttyRunner finished`n`n"});
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
+$cl = new-object System.Net.WebClient;
+$cl.uploaddata("$GUEST_API_URL/logs", $bytes);
+
+exit $($p.ExitCode);
+
+
