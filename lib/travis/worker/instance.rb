@@ -259,7 +259,8 @@ module Travis
           job_id: payload.job.id,
           custom_image: job_image,
           dist: job_dist,
-          group: job_group
+          group: job_group,
+          os: payload.os
         }
 
         vm.sandboxed(vm_opts) do
@@ -267,7 +268,7 @@ module Travis
             reporter.send_log(payload.job.id, "\n\nDone: Job Cancelled\n")
             reporter.notify_job_finished(payload.job.id, 'canceled')
           else
-            @runner = Job::Runner.new(self.payload, vm.session, reporter, vm.full_name, timeouts, name)
+            @runner = Job::Runner.new(self.payload, vm, reporter, timeouts, name)
             @runner.run
           end
         end

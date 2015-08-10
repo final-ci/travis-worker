@@ -4,6 +4,7 @@ require 'benchmark'
 require 'travis/support'
 require 'travis/worker/ssh/session'
 require "fog"
+require 'travis/worker/virtual_machine/base'
 
 module Travis
   module Worker

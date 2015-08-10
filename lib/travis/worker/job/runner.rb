@@ -32,20 +32,21 @@ module Travis
 
         class ConnectionError < StandardError; end
 
-        attr_reader :payload, :session, :reporter, :host_name, :timeouts, :log_prefix
+        attr_reader :vm, :payload, :session, :reporter, :host_name, :timeouts, :log_prefix
 
         log_header { "#{log_prefix}:worker:job:runner" }
 
-        def initialize(payload, session, reporter, host_name, timeouts, log_prefix)
+        def initialize(payload, vm, reporter, timeouts, log_prefix)
           @payload  = payload
-          @session  = session
+          @vm = vm
           @reporter = reporter
-          @host_name  = host_name
+          @host_name  = vm.full_name
           @timeouts   = Hashr.new(timeouts)
           @log_prefix = log_prefix
 
-          @event_state = {
-          }
+          @session  = vm.session
+
+          @event_state = { }
         end
 
         def run
@@ -98,8 +99,7 @@ module Travis
             @reporter,
             &method(:guest_api_handler)
           ).start
-          @guest_api_port = 34567
-          session.forward.remote_to(@guest_api_server.port, '127.0.0.1', @guest_api_port )
+          session.forward.remote_to(@guest_api_server.port, '127.0.0.1', guest_api_port )
 
           notify_job_started
 
@@ -109,10 +109,8 @@ module Travis
           unless stop_with_exception(e)
             warn "[Possible VM Error] The job has been requeued as no output has been received and the ssh connection could not be closed"
           end
-          result = 'errored'
         rescue Utils::Buffer::OutputLimitExceededError, Script::CompileError => e
           stop_with_exception(e)
-          result = 'errored'
         rescue IOError, Errno::ECONNREFUSED
           connection_error
         rescue => e
@@ -182,94 +180,10 @@ module Travis
         def run_script
           info "running the build"
           Timeout::timeout(timeouts.hard_limit) do
-            if session.config.platform == :osx
-              session.upload_file("~/wrapper.sh", <<EOF)
-#!/bin/bash
-
-[[ -f ~/build.sh.exit ]] && rm ~/build.sh.exit
-
-until nc 127.0.0.1 15782; do sleep 1; done
-
-until [[ -f ~/build.sh.exit ]]; do sleep 1; done
-exit $(cat ~/build.sh.exit)
-EOF
-              session.exec("GUEST_API_URL=%s bash ~/wrapper.sh" % guest_api_url) { exit_exec? }
-            elsif payload[:config][:os] == 'windows' && Hash === payload[:config][:windows] && payload[:config][:windows][:run_in_session1]
-              session.upload_file("~/build_wrapper.sh", <<EOF % [Travis::Worker::VirtualMachine.config[:username], Travis::Worker::VirtualMachine.config[:password]])
-#!/bin/bash
-#curl -X POST -d '{"message":"Interactive runner started"}' $GUEST_API_URL/logs
-WIN_HOME_DIR=`cygpath -adw ~`
-PS1_FILE=$WIN_HOME_DIR\\\\run_pswrapper.ps1
-
-/cygdrive/c/Tools/PsExec.exe -u "%s" -p "%s" -acceptEula -h -i 1 powershell -file "$PS1_FILE" 2>/dev/null >/dev/null
-
-if [ -f ~/build.sh.exit ] ; then
-  exit $(cat ~/build.sh.exit)
-else
-  echo "Runner script was probably not executed, returning 1";
-  exit 1;
-fi
-
-EOF
-
-              session.upload_file("~/run_pswrapper.ps1", <<EOF % guest_api_url)
-$GUEST_API_URL="%s";
-[System.Reflection.Assembly]::LoadWithPartialName("System.Net");
-[System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions");
-$ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer;
-
-$json = $ser.serialize(@{message= "`n`nMinttyRunner started`n`n"});
-$bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
-$cl = new-object System.Net.WebClient;
-$cl.uploaddata("$GUEST_API_URL/logs", $bytes);
-
-$p = new-object system.diagnostics.process;
-$p.StartInfo.UseShellExecute = $false;
-$p.StartInfo.CreateNoWindow = $true;
-$p.StartInfo.FileName = "c:\\cygwin\\bin\\mintty.exe";
-$p.StartInfo.Arguments = "-l - --exec /bin/bash -l -c 'exec /bin/bash ~/build.sh'";
-$p.StartInfo.RedirectStandardError = $p.StartInfo.RedirectStandardOutput = $true;
-
-$block = {
-    try
-    {
-        $hash = @{message = $event.SourceEventArgs.Data};
-        $json = $ser.Serialize($hash);
-        $cl = new-object System.Net.WebClient;
-        $bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
-        $cl.uploaddata("$GUEST_API_URL/logs", $bytes);
-    }
-    catch
-    {
-    }
-}
-
-Register-ObjectEvent -InputObject $p -EventName OutputDataReceived -Action $block -SourceIdentifier OutputReader | Out-Null;
-$p.Start() | out-null;
-$p.BeginOutputReadLine();
-while(-not $p.HasExited)
-{
-    sleep 1;
-};
-if($p.StandardError -ne $null)
-{
-    $p.StandardError.ReadToEnd()|Out-Host;
-};
-Unregister-Event -SourceIdentifier OutputReader;
-$p.WaitForExit();
-
-$json = $ser.serialize(@{message= "`n`nMinttyRunner finished`n`n"});
-$bytes = [System.Text.Encoding]::ASCII.GetBytes($json);
-$cl = new-object System.Net.WebClient;
-$cl.uploaddata("$GUEST_API_URL/logs", $bytes);
-
-exit $($p.ExitCode);
-
-EOF
-              session.exec("GUEST_API_URL=%s bash --login ~/build_wrapper.sh" % guest_api_url) { exit_exec? }
-            else
-              session.exec("GUEST_API_URL=%s bash --login ~/build.sh" % guest_api_url) { exit_exec? }
+            (vm.platform_provider.wrapper_script(self) || {}).each do |file_name, content|
+              session.upload_file(file_name, content)
             end
+            session.exec(vm.platform_provider.command(self)) { exit_exec? }
           end
         rescue Timeout::Error
           timedout
