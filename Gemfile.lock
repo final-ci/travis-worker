@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: git://github.com/final-ci/travis-guest-api.git
-  revision: ffc6cd201a81d4cfe6d44a071aca99b841316ff1
+  revision: 503d1fd821297213dc9128bcdd957aeeef3e2424
   specs:
     travis-guest-api (0.0.1)
       multi_json
@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: git://github.com/final-ci/travis-support.git
-  revision: 6ed312e112452497dc22ab73561f134ffaaa9f77
+  revision: 592ccf7dbb6cc631c200c64d3f682ed593fb2aa1
   specs:
     travis-support (0.0.1)
 
@@ -228,7 +228,7 @@ GEM
     tilt (1.4.1)
     timers (2.0.0)
       hitimes
-    travis-config (0.1.0)
+    travis-config (0.1.1)
       hashr (~> 0.0)
     travis-saucelabs-api (0.0.3)
       faraday (~> 0.7)
