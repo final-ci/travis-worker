@@ -36,7 +36,8 @@ module Travis
              image_mappings: {},
              keychain_password: {},
              build:     {},
-             sentry:    {}
+             sentry:    {},
+             platform:  {}
 
       def name
         @name ||= host.split('.').first

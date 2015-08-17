@@ -170,9 +170,11 @@ module Travis
         end
 
         def destroy_server(opts = {})
-          ip = ip_address
-          stop_container
-          remove_container
+          if container
+            ip = ip_address
+            stop_container
+            remove_container
+          end
           @session = nil
         end
 

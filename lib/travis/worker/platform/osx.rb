@@ -1,6 +1,10 @@
 class Platform
   class Osx < Platform
 
+    def platform_name
+      'osx'
+    end
+
     def wrapper_script(job_runner)
       {
         '~/wrapper.sh' => template('wrapper.sh', job_runner)

@@ -1,5 +1,6 @@
 require 'travis/support'
 require 'travis/worker/ssh/session'
+require 'travis/worker/platform'
 
 module Travis
   module Worker

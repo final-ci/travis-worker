@@ -1,6 +1,10 @@
 class Platform
   class Windows < Platform
 
+    def platform_name
+      'windows'
+    end
+
     def wrapper_script(job_runner)
       {
         '~/build_wrapper.sh'  => template('build_wrapper.sh', job_runner),

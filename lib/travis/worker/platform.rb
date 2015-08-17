@@ -33,18 +33,19 @@ class Platform < Hash
   end
 
   def password
-    Travis.config[provider_name].password
+    Travis::Worker.config[provider_name].password || platform_config.password
   end
 
   def username
-    Travis.config[provider_name].username || 'travis'
+    Travis::Worker.config[provider_name].username || platform_config.username || 'travis'
   end
 
   def private_key_path
+    Travis::Worker.config[provider_name].private_key_path || platform_config.private_key_path
   end
 
   def default_image
-    Travis.config[provider_name].default_image || 'travis_ubuntu1404'
+    Travis::Worker.config[provider_name].default_image || platform_config.default_image || 'travis_ubuntu1404'
   end
 
 
@@ -56,6 +57,10 @@ class Platform < Hash
     template = File.read(path)
     bnd = job_runner.instance_eval { binding }
     ERB.new(template, nil, '-').result(bnd)
+  end
+
+  def platform_config
+    @platform_config ||= Travis::Worker.config.platform[platform_name]
   end
 
 end
