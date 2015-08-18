@@ -8,13 +8,14 @@ env:
 
 rvm:
   - jruby-1.7.16
-  - jruby-head
   - ruby-2.1.5
+#- jruby-head
 
 #temporary fix, see https://github.com/joshk/sshjr/issues/3
 before_install:
+  - rvm @global do gem uninstall -aIx bundler '>1.10.0' --force || true
   - rvm @global do gem install bundler -v '1.9.4'
-  - rvm @global do gem uninstall bundler -v '1.10.5' || true
+  - bundle --version
 
 bundler_args: --deployment --binstubs --jobs=3 --retry=3
 
@@ -22,7 +23,6 @@ cache: bundler
 
 jdk:
   - openjdk7
-  - openjdk6
   - oraclejdk7
 
 matrix:
@@ -35,12 +35,9 @@ matrix:
       jdk: oraclejdk7
     - rvm: 2.1.5
       jdk: oraclejdk7
-    - rvm: jruby-head
-      jdk: openjdk6
   allow_failures:
     - rvm: jruby-head
       jdk: openjdk7
-    - rvm: jruby-head
 
 sudo: false
 
