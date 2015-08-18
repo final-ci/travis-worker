@@ -5,6 +5,10 @@ class Platform
       'windows'
     end
 
+    def user_data?
+      false
+    end
+
     def wrapper_script(job_runner)
       {
         '~/build_wrapper.sh'  => template('build_wrapper.sh', job_runner),

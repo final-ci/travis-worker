@@ -52,6 +52,9 @@ class Platform < Hash
     Travis::Worker.config[provider_name].default_image || platform_config.default_image || 'travis_ubuntu1404'
   end
 
+  def user_data?
+    true
+  end
 
   protected
 

@@ -58,14 +58,19 @@ module Travis
 
         def session
           #create_server unless clone
-          @session ||= Ssh::Session.new(name,
+          opts = {
             :host => ip_address,
             :port => platform_provider.port,
             :username => platform_provider.username,
-            :private_key_path => platform_provider.private_key_path,
             :buffer => Travis::Worker.config.shell.buffer,
             :timeouts => Travis::Worker.config.timeouts
-          )
+           }
+           opts[:private_key_path] = platform_provider.private_key_path if platform_provider.private_key_path
+           opts[:password] = platform_provider.password if (
+             platform_provider.password and !opts[:private_key_path]
+           )
+
+          @session ||= Ssh::Session.new(name, opts)
         end
 
         def clear_closed_session

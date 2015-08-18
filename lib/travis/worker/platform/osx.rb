@@ -5,6 +5,10 @@ class Platform
       'osx'
     end
 
+    def user_data?
+      true
+    end
+
     def wrapper_script(job_runner)
       {
         '~/wrapper.sh' => template('wrapper.sh', job_runner)

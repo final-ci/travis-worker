@@ -6,11 +6,12 @@ require 'travis/support'
 require 'travis/worker/ssh/session'
 require 'resolv'
 #require 'travis/worker/virtual_machine/blue_box/template'
+require 'travis/worker/virtual_machine/base'
 
 module Travis
   module Worker
     module VirtualMachine
-      class OpenStack
+      class OpenStack < Base
         include Retryable
         include Logging
 
@@ -18,25 +19,8 @@ module Travis
 
         DEFAULT_TEMPLATE_ID = Travis::Worker.config.open_stack.default_template_id
 
-        USER_NAME = Travis::Worker.config.open_stack.username
+        attr_reader :password, :server, :ip_address
 
-        class << self
-          def vm_count
-            Travis::Worker.config.vms.count
-          end
-
-          def vm_names
-            vm_count.times.map { |num| "#{Travis::Worker.config.vms.name_prefix}-#{num + 1}" }
-          end
-        end
-
-        log_header { "#{name}:worker:virtual_machine:open_stack" }
-
-        attr_reader :name, :password, :server, :ip_address
-
-        def initialize(name)
-          @name = name
-        end
 
         # create a connection
         def connection
@@ -66,9 +50,10 @@ module Travis
         end
 
         def create_new_server(opts)
-          @password = (opts[:password] ||= Travis::Worker.config.open_stack.password || generate_password)
+          opts[:password] ||= platform_provider.password
+          opts[:password] ||= generate_password if platform_provider.user_data?
 
-          opts[:user_data] = user_data(opts[:name], USER_NAME, opts[:password])
+          opts[:user_data] = user_data(opts[:name], opts[:username], opts[:password]) if platform_provider.user_data?
 
           @server = connection.servers.create(opts)
           instrument do
@@ -109,39 +94,13 @@ module Travis
           "testing-#{prefix}-#{Process.pid}-#{name}-#{suffix}"
         end
 
-        def session
-          unless server
-            raise StandardError, 'VM is not currently available'
-          end
-          @session ||= Ssh::Session.new(name,
-            :host => ip_address,
-            :port => 22,
-            :username => USER_NAME,
-            :password => Travis::Worker.config.open_stack.password,
-            :private_key_path => Travis::Worker.config.open_stack.private_key_path,
-            :buffer => Travis::Worker.config.shell.buffer,
-            :timeouts => Travis::Worker.config.timeouts
-          )
-        end
-
-        def sandboxed(opts = {})
-          create_server(opts)
-          yield
-        ensure
-          session.close if @session
-          destroy_server if server
-        end
 
         def open_stack_vm_defaults
           {
-            :username  => USER_NAME,
+            :username  => platform_provider.username,
             :flavor_ref => Travis::Worker.config.open_stack.flavor_id,
             :nics => [{ net_id: Travis::Worker.config.open_stack.internal_network_id }]
           }
-        end
-
-        def full_name
-          "#{Travis::Worker.config.host}:travis-#{name}"
         end
 
         def allocate_and_associate_ip_address_for(srv)
